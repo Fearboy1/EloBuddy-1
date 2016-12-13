@@ -20,6 +20,7 @@ namespace Prototype_Viktor
 
 
         private static Spell.Targeted Q, Ignite;
+        private static GameObject ViktorStormObj = null;
         private static SpellSlot IgniteSlot;
         private static bool bIgnite;
         private static Spell.Skillshot W, E, R;
@@ -191,13 +192,43 @@ namespace Prototype_Viktor
             Game.OnTick += Game_OnTick;
             Gapcloser.OnGapcloser += Gapcloser_OnGapcloser;
             Interrupter.OnInterruptableSpell += Interrupter_OnInterruptableSpell;
-            Obj_AI_Base.OnProcessSpellCast += Obj_AI_Base_OnProcessSpellCast;
+            Missile.OnCreate += Missile_OnCreate; // Obj_AI_Base.OnProcessSpellCast += Obj_AI_Base_OnProcessSpellCast;
+            GameObject.OnCreate += GameObject_OnCreate;
+            GameObject.OnDelete += GameObject_OnDelete;
             Orbwalker.OnUnkillableMinion += Orbwalker_OnUnkillableMinion;
             Drawing.OnDraw += Drawing_OnDraw;
 
 
             Chat.Print("Prototype Viktor " + version + " Loaded!");
-            Console.WriteLine("Prototype Viktor " + version + " Loaded! Last Patch Update: 6.21");
+            Console.WriteLine("Prototype Viktor " + version + " Loaded! Last Patch Update: 6.24");
+        }
+
+
+        private static void GameObject_OnCreate(GameObject sender, EventArgs args)
+        {
+            if (sender.Name.Contains("Viktor_Base_R_Droid.troy"))
+            {
+                ViktorStormObj = sender;
+            }
+        }
+
+        private static void GameObject_OnDelete(GameObject sender, EventArgs args)
+        {
+            if (sender.Name.Contains("Viktor_Base_R_Droid.troy"))
+            {
+                ViktorStormObj = null;
+            }
+        }
+
+
+
+        private static void Missile_OnCreate(GameObject sender, EventArgs args)
+        {
+            var ms = sender as MissileClient;
+            if (ms != null && ms.SpellCaster.IsMe && ms.SData.Name.Equals("ViktorPowerTransfer"))
+            {
+                Player.IssueOrder(GameObjectOrder.MoveTo, Game.CursorPos);
+            }
         }
 
         private static void Orbwalker_OnUnkillableMinion(Obj_AI_Base target, Orbwalker.UnkillableMinionArgs args)
@@ -216,28 +247,15 @@ namespace Prototype_Viktor
         {
             if (_Player.IsDead || _Player.HasBuff("Recall")) return;
 
-            if (_AutoFollowR != 2)
-            {
-                if (R.Name != "ViktorChaosStorm") //&& Core.GameTickCount - _tick >= _RTickSlider
-                {
-                    //var stormT = TargetSelector.GetTarget(1750, DamageType.Magical);
-                    var stormT = EntityManager.Heroes.Enemies.Where(x => x.IsValidTarget(3000, true) && !x.IsDead).OrderBy(x => x.HealthPercent).FirstOrDefault();
-                    if (stormT != null)
-                    {
-                      R.Cast(stormT.Position);
-                       // _tick = Core.GameTickCount;
-                    }
-                  if (stormT == null && _AutoFollowR == 0)
-                   {
-                    R.Cast(_Player.Position);
-                       // _tick = Core.GameTickCount;
-                    }
 
-                }
+            if (_AutoFollowR != 2 && ViktorStormObj != null)
+            {
+
+                RFollow();
+
             }
 
-
-                KillSecure();
+            KillSecure();
 
             if (Orbwalker.ActiveModesFlags.HasFlag(Orbwalker.ActiveModes.Combo))
             {
@@ -251,12 +269,22 @@ namespace Prototype_Viktor
                 JungleClearEBeta();
                 JungleClearQBeta();
             }
-           // if (Orbwalker.ActiveModesFlags.HasFlag(Orbwalker.ActiveModes.LastHit)) QLastHitBeta();
         }
 
-  
-
         #endregion
+        private static void RFollow()
+        {
+            var stormT = EntityManager.Heroes.Enemies.Where(x => x.IsValidTarget(2000, true, ViktorStormObj.Position) && !x.IsZombie && !x.IsDead).OrderBy(x => x.Distance(ViktorStormObj.Position)).FirstOrDefault();
+
+            if (stormT != null)
+            {
+                Core.DelayAction(() => R.Cast(stormT.Position), 35);
+            }
+            else if (stormT == null && _AutoFollowR == 0)
+            {
+                Core.DelayAction(() => R.Cast(_Player.Position), 35);
+            }
+        }
 
         //(WQER)
         private static void SafeCombo()
