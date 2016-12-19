@@ -192,7 +192,8 @@ namespace Prototype_Viktor
             Game.OnTick += Game_OnTick;
             Gapcloser.OnGapcloser += Gapcloser_OnGapcloser;
             Interrupter.OnInterruptableSpell += Interrupter_OnInterruptableSpell;
-            Missile.OnCreate += Missile_OnCreate; // Obj_AI_Base.OnProcessSpellCast += Obj_AI_Base_OnProcessSpellCast;
+            Missile.OnCreate += Missile_OnCreate; // 
+            Obj_AI_Base.OnProcessSpellCast += Obj_AI_Base_OnProcessSpellCast;
             GameObject.OnCreate += GameObject_OnCreate;
             GameObject.OnDelete += GameObject_OnDelete;
             Orbwalker.OnUnkillableMinion += Orbwalker_OnUnkillableMinion;
