@@ -201,7 +201,7 @@ namespace Prototype_Viktor
 
 
             Chat.Print("Prototype Viktor " + version + " Loaded!");
-            Console.WriteLine("Prototype Viktor " + version + " Loaded! Last Patch Update: 6.24");
+            Console.WriteLine("Prototype Viktor " + version + " Loaded! Last Patch Update: 7.1");
         }
 
 
@@ -275,15 +275,20 @@ namespace Prototype_Viktor
         #endregion
         private static void RFollow()
         {
-            var stormT = EntityManager.Heroes.Enemies.Where(x => x.IsValidTarget(2000, true, ViktorStormObj.Position) && !x.IsZombie && !x.IsDead).OrderBy(x => x.Distance(ViktorStormObj.Position)).FirstOrDefault();
+            var stormT = EntityManager.Heroes.Enemies.Where(x => x.IsValidTarget(2000, true, ViktorStormObj.Position) && !x.IsZombie && !x.IsDead).OrderBy(x => x.HealthPercent).FirstOrDefault();
 
             if (stormT != null)
             {
-                Core.DelayAction(() => R.Cast(stormT.Position), 35);
+                Core.DelayAction(() => R.Cast(stormT), 100);
             }
-            else if (stormT == null && _AutoFollowR == 0)
+            else
             {
-                Core.DelayAction(() => R.Cast(_Player.Position), 35);
+                var target = TargetSelector.GetTarget(2000, DamageType.Magical);
+                if (target != null)
+                {
+                    Core.DelayAction(() => R.Cast(target), 100);
+
+                }
             }
         }
 
