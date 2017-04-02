@@ -110,6 +110,7 @@ namespace Prototype_Viktor
             ViktorComboMenu.AddSeparator(10);
             ViktorComboMenu.AddLabel("[KillSteal Options]");
             ViktorComboMenu.Add("EnableKS", new CheckBox("Enable KillSteal"));
+            ViktorComboMenu.AddSeparator(2);
             ViktorComboMenu.Add("KsQ", new CheckBox("KillSteal with Q"));
             ViktorComboMenu.Add("KsE", new CheckBox("KillSteal with E"));
 
@@ -117,7 +118,7 @@ namespace Prototype_Viktor
             ViktorRMenu.Add("CheckR", new CheckBox("Cast Ulti(R) only when Enemy is killable"));
             ViktorRMenu.AddSeparator(10);
             ViktorRMenu.AddLabel("[Ulti(R) Settings]");
-            ViktorRMenu.Add("FollowOption", new ComboBox("Follow Options", 0, "Enemies & Viktor", "Only Enemies", "Disabled"));
+            ViktorRMenu.Add("FollowOption", new ComboBox("Follow Options", 0, "Enemies & CS", "Only Enemies", "Disabled"));
             ViktorRMenu.Add("MinEnemiesR", new Slider("Minimum Enemies{0} to cast R:", 1, 1, 5));
 
             ViktorRMenu.AddSeparator(10);
@@ -206,7 +207,7 @@ namespace Prototype_Viktor
 
 
             Chat.Print("Prototype Viktor " + version + " Loaded!");
-            Console.WriteLine("Prototype Viktor " + version + " Loaded! Last Patch Update: 7.1");
+            Console.WriteLine("Prototype Viktor " + version + " Loaded! Updated for Patch 7.6!");
         }
 
 
@@ -253,7 +254,7 @@ namespace Prototype_Viktor
             if (_Player.IsDead || _Player.HasBuff("Recall")) return;
 
 
-            if (_AutoFollowR != 2 && ViktorStormObj != null)
+            if (_AutoFollowR != 1 && ViktorStormObj != null)
             {
 
                 RFollow();
