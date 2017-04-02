@@ -23,9 +23,9 @@ namespace Prototype_Viktor
         private static GameObject ViktorStormObj = null;
         private static SpellSlot IgniteSlot;
         private static bool bIgnite;
-        private static Spell.Skillshot W, E, R;
+        private static Spell.Skillshot W, E, R,R2;
         public static int EMaxRange = 1225;
-        private static int _tick=0;
+        private static int _tick = 0;
         private static Vector3 startPos;
         private static Menu ViktorMenu;
 
@@ -51,12 +51,22 @@ namespace Prototype_Viktor
         private static void LoadSkills()
         {
             Q = new Spell.Targeted(SpellSlot.Q, 670);
-            W = new Spell.Skillshot(SpellSlot.W, 700, SkillShotType.Circular, 500, int.MaxValue, 300);
-            W.AllowedCollisionCount = int.MaxValue;
-            E = new Spell.Skillshot(SpellSlot.E, 525, SkillShotType.Linear, 250, int.MaxValue, 100);
-            E.AllowedCollisionCount = int.MaxValue;
-            R = new Spell.Skillshot(SpellSlot.R, 700, SkillShotType.Circular, 250, int.MaxValue, 450);
-            R.AllowedCollisionCount = int.MaxValue;
+            W = new Spell.Skillshot(SpellSlot.W, 700, SkillShotType.Circular, 500, int.MaxValue, 300)
+            {
+                AllowedCollisionCount = int.MaxValue
+            };
+            E = new Spell.Skillshot(SpellSlot.E, 525, SkillShotType.Linear, 250, int.MaxValue, 100)
+            {
+                AllowedCollisionCount = int.MaxValue
+            };
+            R = new Spell.Skillshot(SpellSlot.R, 700, SkillShotType.Circular, 250, int.MaxValue, 450)
+            {
+                AllowedCollisionCount = int.MaxValue
+            };
+            R2 = new Spell.Skillshot(SpellSlot.R, 2000, SkillShotType.Circular, 250, int.MaxValue, 450)
+            {
+                AllowedCollisionCount = int.MaxValue
+            };
         }
 
         #endregion
@@ -162,11 +172,6 @@ namespace Prototype_Viktor
             ViktorMiscMenu.Add("Interrupt", new CheckBox("Auto Interrupter (W)"));
             ViktorMiscMenu.Add("Gapclose", new CheckBox("Anti GapCloser (W)"));
             ViktorMiscMenu.AddLabel("Anti Gapcloser will cast (W) on Viktor's position");
-            /*
-            ViktorMiscMenu.AddLabel("[Skin Selector]");
-            ViktorMiscMenu.Add("SkinChanger", new Slider("Skin ID:", 1, 1, 4));
-            ViktorMiscMenu.AddSeparator(10);
-           */
 
         }
 
@@ -234,11 +239,10 @@ namespace Prototype_Viktor
 
         private static void Orbwalker_OnUnkillableMinion(Obj_AI_Base target, Orbwalker.UnkillableMinionArgs args)
         {
-            if ((!Orbwalker.ActiveModesFlags.HasFlag(Orbwalker.ActiveModesFlags & Orbwalker.ActiveModes.LastHit) ||
-                !Orbwalker.ActiveModesFlags.HasFlag(Orbwalker.ActiveModesFlags & Orbwalker.ActiveModes.LaneClear)) && !ViktorLastHitMenu["UseQ"].Cast<CheckBox>().CurrentValue )
+            if (Orbwalker.ActiveModesFlags.HasFlag(Orbwalker.ActiveModes.Combo) && !ViktorLastHitMenu["UseQ"].Cast<CheckBox>().CurrentValue)
                 return;
 
-            if (Q.IsReady() && _Player.GetSpellDamage(target,SpellSlot.Q) >= target.Health && _Player.ManaPercent >= ViktorLastHitMenu["QMana"].Cast<Slider>().CurrentValue)
+            if (Q.IsReady() && _Player.GetSpellDamage(target, SpellSlot.Q) >= target.Health && _Player.ManaPercent >= ViktorLastHitMenu["QMana"].Cast<Slider>().CurrentValue )
             {
                 Q.Cast(target);
             }
@@ -279,17 +283,17 @@ namespace Prototype_Viktor
 
             if (stormT != null)
             {
-                Core.DelayAction(() => R.Cast(stormT), 100);
+                Core.DelayAction(() => R2.Cast(stormT), 100);
             }
-            else
-            {
-                var target = TargetSelector.GetTarget(2000, DamageType.Magical);
-                if (target != null)
-                {
-                    Core.DelayAction(() => R.Cast(target), 100);
 
-                }
+            if (stormT == null && _AutoFollowR == 1)
+            {
+                var mtarget = EntityManager.MinionsAndMonsters.EnemyMinions.Where(m => m.IsValidTarget(1000));
+                var loc = R2.GetBestCircularCastPosition(mtarget);
+
+                Core.DelayAction(() => R2.Cast(loc.CastPosition), 100);
             }
+            
         }
 
         //(WQER)
@@ -446,7 +450,7 @@ namespace Prototype_Viktor
                 }
 
                 if (_KsQ && target.IsValidTarget(Q.Range) && target.Health < _Player.GetSpellDamage(target, SpellSlot.Q) + CalculateAADmg())
-                {     
+                {
                     CastQ();
                 }
             }
