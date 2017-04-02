@@ -152,7 +152,7 @@ namespace Prototype_Viktor
 
             ViktorLastHitMenu = ViktorMenu.AddSubMenu("LastHit", "LastHit");
             ViktorLastHitMenu.AddLabel("[LastHit Settings]");
-            ViktorLastHitMenu.Add("UseQ", new CheckBox("Use Q on Unkillable Minion."));
+            ViktorLastHitMenu.Add("UseQ", new CheckBox("Use Q on Unkillable Minion.",false));
             ViktorLastHitMenu.Add("QMana", new Slider("Minimum mana({0}%) to use Q:", 30));
 
             ViktorDrawMenu = ViktorMenu.AddSubMenu("Drawings", "Drawings");
@@ -240,10 +240,10 @@ namespace Prototype_Viktor
 
         private static void Orbwalker_OnUnkillableMinion(Obj_AI_Base target, Orbwalker.UnkillableMinionArgs args)
         {
-            if (Orbwalker.ActiveModesFlags.HasFlag(Orbwalker.ActiveModes.Combo) && !ViktorLastHitMenu["UseQ"].Cast<CheckBox>().CurrentValue)
+           if (Orbwalker.ActiveModesFlags.HasFlag(Orbwalker.ActiveModes.Combo) || !_LastHitQ || _Player.ManaPercent <= ViktorLastHitMenu["QMana"].Cast<Slider>().CurrentValue)
                 return;
 
-            if (Q.IsReady() && _Player.GetSpellDamage(target, SpellSlot.Q) >= target.Health && _Player.ManaPercent >= ViktorLastHitMenu["QMana"].Cast<Slider>().CurrentValue )
+            if (Q.IsReady() && _Player.GetSpellDamage(target, SpellSlot.Q) + 20 >= target.Health)
             {
                 Q.Cast(target);
             }
@@ -254,7 +254,7 @@ namespace Prototype_Viktor
             if (_Player.IsDead || _Player.HasBuff("Recall")) return;
 
 
-            if (_AutoFollowR != 1 && ViktorStormObj != null)
+            if (_AutoFollowR != 2 && ViktorStormObj != null)
             {
 
                 RFollow();
@@ -287,12 +287,15 @@ namespace Prototype_Viktor
                 Core.DelayAction(() => R2.Cast(stormT), 100);
             }
 
-            if (stormT == null && _AutoFollowR == 1)
+            if (stormT == null && _AutoFollowR == 0)
             {
                 var mtarget = EntityManager.MinionsAndMonsters.EnemyMinions.Where(m => m.IsValidTarget(1000));
+                if (mtarget.Any())
+                { 
                 var loc = R2.GetBestCircularCastPosition(mtarget);
 
                 Core.DelayAction(() => R2.Cast(loc.CastPosition), 100);
+                }
             }
             
         }
@@ -707,6 +710,11 @@ namespace Prototype_Viktor
         private static int _MinMinions
         {
             get { return ViktorLaneClearMenu["MinMinions"].Cast<Slider>().CurrentValue; }
+        }
+
+        private static bool _LastHitQ
+        {
+            get { return ViktorLastHitMenu["UseQ"].Cast<CheckBox>().CurrentValue; }
         }
 
         private static bool _DrawQ
