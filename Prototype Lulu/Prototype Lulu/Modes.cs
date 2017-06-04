@@ -22,6 +22,8 @@ namespace Prototype_Lulu
 
         private static void Game_OnTick(EventArgs args)
         {
+            if (Program._Player.IsDead || Program._Player.HasBuff("Recall") || Program._Player.IsInFountainRange()) return;
+
             KillSteal();
             Program.Pix();
             if (SpellFactory.E.IsReady()) ProtectorE();
